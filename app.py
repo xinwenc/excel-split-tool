@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, GradientFill
+
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads'
@@ -186,40 +187,34 @@ def get_split_values():
         os.remove(temp_path)
         return jsonify({'error': str(e)}), 500
 
-# ------------------------------------------------------------
-# 核心样式复制函数（修复背景色丢失 + 样式不可变错误）
-# ------------------------------------------------------------
-from openpyxl.styles import PatternFill, GradientFill
-
+# ---------- 样式复制函数（保留背景色，且只复制值）----------
 def copy_cell_with_style(src_cell, dst_cell):
-    """复制单元格值和所有样式（背景色、字体、边框等）- 增强版"""
+    """复制单元格值（公式转为计算结果）和所有样式（背景色、字体等）"""
+    # 直接复制值（因为加载时使用 data_only=True，公式单元格已经是计算结果）
     dst_cell.value = src_cell.value
+
     if src_cell.has_style:
-        # 复制字体、边框、对齐、数字格式
+        # 复制字体、边框、数字格式、对齐
         dst_cell.font = copy(src_cell.font)
         dst_cell.border = copy(src_cell.border)
-        dst_cell.alignment = copy(src_cell.alignment)
         dst_cell.number_format = src_cell.number_format
+        dst_cell.alignment = copy(src_cell.alignment)
 
-        # 处理背景色填充 - 针对 PatternFill 进行显式重建
+        # 复制填充（背景色）—— 显式重建 PatternFill 以尽可能保留标准色
         src_fill = src_cell.fill
         if src_fill:
             try:
                 if isinstance(src_fill, PatternFill):
-                    # 新建 PatternFill 对象，复制所有属性
                     new_fill = PatternFill(
                         fill_type=src_fill.fill_type,
                         fgColor=copy(src_fill.fgColor) if src_fill.fgColor else None,
                         bgColor=copy(src_fill.bgColor) if src_fill.bgColor else None
                     )
                     dst_cell.fill = new_fill
-                elif isinstance(src_fill, GradientFill):
-                    # 渐变填充直接复制（通常很少用）
-                    dst_cell.fill = copy(src_fill)
                 else:
                     dst_cell.fill = copy(src_fill)
             except Exception:
-                # 如果出错，退化为直接复制（但通常不会）
+                # 降级：直接复制原始 fill 对象
                 dst_cell.fill = copy(src_fill)
 
 def copy_sheet_dimensions(src_ws, dst_ws):
@@ -238,7 +233,8 @@ def split_excel_advanced(original_file_path, output_dir, header_row, split_mode,
     """
     增强拆分函数，支持值筛选和多列组合，完整保留样式
     """
-    wb = load_workbook(original_file_path, data_only=False)
+    # 关键：data_only=True 使得公式单元格返回计算结果
+    wb = load_workbook(original_file_path, data_only=True)
     base_name = os.path.splitext(os.path.basename(original_file_path))[0]
 
     # 确定所有拆分列号
