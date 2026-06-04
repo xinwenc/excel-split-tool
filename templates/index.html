@@ -2,501 +2,807 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Excel 高级拆分工具 - 完整功能版</title>
+    <title>Excel 多 Sheet 通用拆分工具</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 1100px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
-        .card { background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, select, button {
-            width: 100%; padding: 10px; font-size: 14px;
-            border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        body {
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            max-width: 1200px;
+            margin: 36px auto;
+            padding: 20px;
+            background: #f5f7fb;
+            color: #222;
         }
-        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-        button:disabled { background-color: #aaa; cursor: not-allowed; }
-        .sheet-container { display: flex; gap: 20px; margin-top: 10px; }
-        .sheet-box { flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 10px; background: #fafafa; }
-        .sheet-box h4 { margin: 0 0 10px 0; font-size: 14px; }
-        .sheet-list { max-height: 200px; overflow-y: auto; }
-        .sheet-item { margin: 5px 0; }
-        .radio-group { display: flex; gap: 20px; align-items: center; }
-        .radio-group label { font-weight: normal; margin-bottom: 0; }
-        .info { margin-top: 20px; font-size: 13px; color: #666; background: #e9ecef; padding: 10px; border-radius: 4px; }
-        .loading { display: none; margin-top: 20px; color: #007bff; font-weight: bold; }
-        .error { color: red; margin-top: 10px; }
-        .success { color: green; }
-        .filename-example { font-size: 12px; color: #666; margin-top: 5px; }
-        .checkbox-group { border: 1px solid #ccc; border-radius: 4px; padding: 10px; max-height: 250px; overflow-y: auto; background: #fff; }
-        .checkbox-group label { display: inline-block; margin-right: 15px; font-weight: normal; }
-        .multi-col-group { margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
-        .value-buttons { margin-bottom: 8px; }
-        .value-buttons button { width: auto; padding: 5px 10px; margin-right: 10px; background-color: #28a745; }
-        .fetch-btn { background-color: #17a2b8; margin-top: 10px; }
-        .inline-buttons { display: flex; gap: 10px; align-items: center; }
-        .inline-buttons button { width: auto; flex: 1; }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08);
+        }
+        h2 { margin-top: 0; }
+        h3 { margin: 0 0 14px 0; font-size: 17px; }
+        .form-group { margin-bottom: 22px; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #cfd6e4;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        input[type="checkbox"], input[type="radio"] { width: auto; margin-right: 6px; }
+        button {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        button:hover:not(:disabled) { filter: brightness(0.96); }
+        button:disabled { background-color: #a9b2c3; cursor: not-allowed; }
+        .sheet-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 10px;
+        }
+        .sheet-box {
+            border: 1px solid #d8deea;
+            border-radius: 8px;
+            padding: 14px;
+            background: #fbfcff;
+        }
+        .sheet-list { max-height: 230px; overflow-y: auto; }
+        .sheet-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        .sheet-item label { display: inline; margin: 0; font-weight: 400; }
+        .config-area { display: grid; gap: 14px; }
+        .sheet-config-card {
+            border: 1px solid #cfd6e4;
+            border-left: 5px solid #0d6efd;
+            border-radius: 10px;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .config-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .config-title strong { font-size: 16px; }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #edf4ff;
+            color: #0d6efd;
+            font-size: 12px;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: 180px 240px 1fr;
+            gap: 12px;
+            align-items: end;
+        }
+        .radio-row { display: flex; gap: 12px; align-items: center; height: 39px; }
+        .radio-row label { margin: 0; font-weight: 400; white-space: nowrap; }
+        .inline-buttons { display: grid; grid-template-columns: 1fr 110px; gap: 10px; }
+        .small-note {
+            margin-top: 6px;
+            color: #6b7280;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .info {
+            margin-top: 22px;
+            font-size: 13px;
+            color: #4b5563;
+            background: #eef2f7;
+            padding: 14px;
+            border-radius: 8px;
+            line-height: 1.7;
+        }
+        .loading { display: none; margin-top: 18px; color: #0d6efd; font-weight: 700; }
+        .error { color: #dc3545; margin-top: 10px; white-space: pre-wrap; }
+        .success { color: #198754; margin-top: 10px; white-space: pre-wrap; }
+        .checkbox-group {
+            border: 1px solid #d8deea;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #fff;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 6px 12px;
+        }
+        .checkbox-group label {
+            display: block;
+            margin: 0;
+            font-weight: 400;
+            word-break: break-all;
+        }
+        .value-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .value-buttons button { width: auto; padding: 8px 12px; background: #6c757d; }
+        .fetch-btn { background-color: #17a2b8; }
+        .submit-btn { background-color: #198754; }
+        .warning {
+            padding: 10px;
+            background: #fff8e6;
+            border: 1px solid #ffe2a8;
+            border-radius: 8px;
+            color: #8a5a00;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        @media (max-width: 900px) {
+            .sheet-container { grid-template-columns: 1fr; }
+            .config-grid { grid-template-columns: 1fr; }
+            .inline-buttons { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 <div class="card">
-    <h2>📊 Excel 高级拆分工具（值筛选 + 多列组合 + 全选按钮）</h2>
+    <h2>📊 Excel 多 Sheet 通用拆分工具</h2>
+    <div class="warning">
+        新版逻辑：每个被选中的“拆分工作表”都可以单独设置表头行号、拆分方式和拆分列。系统会把所有 sheet 中相同“拆分值”的数据汇总到同一个 Excel 文件中，每个结果文件里仍然保留多个 sheet。比如可以按物业公司、平台公司、区域、项目名称、负责人等任意字段拆分。
+    </div>
+
     <form id="splitForm" enctype="multipart/form-data">
         <div class="form-group">
-            <label>1. 选择 Excel 文件 (.xlsx / .xls)</label>
-            <input type="file" id="excelFile" accept=".xlsx, .xls" required>
+            <label>1. 选择 Excel 文件（.xlsx / .xlsm）</label>
+            <input type="file" id="excelFile" accept=".xlsx,.xlsm" required>
+            <div class="small-note">如果是 .xls 文件，请先用 Excel 另存为 .xlsx。</div>
         </div>
+
         <div class="form-group">
-            <label>2. 表头所在行号（从1开始，该行及以上会完整保留）</label>
-            <input type="number" id="headerRow" value="3" min="1" required>
-        </div>
-        <div class="form-group">
-            <label>3. 加载工作表</label>
+            <label>2. 加载工作表</label>
             <button type="button" id="loadSheetsBtn">加载工作表</button>
         </div>
+
         <div id="sheetsArea" style="display:none;">
             <div class="sheet-container">
                 <div class="sheet-box">
-                    <h4>✂️ 拆分工作表（需筛选数据）</h4>
+                    <h3>✂️ 拆分工作表</h3>
+                    <div class="small-note">勾选后，下方会出现该 sheet 的独立配置。</div>
                     <div id="splitSheetsList" class="sheet-list">请先加载工作表</div>
                 </div>
                 <div class="sheet-box">
-                    <h4>📄 完整保留工作表（原样复制）</h4>
+                    <h3>📄 完整保留工作表</h3>
+                    <div class="small-note">这些 sheet 会原样复制到每个拆分结果中。已作为拆分工作表的 sheet 不需要再勾选。</div>
                     <div id="keepSheetsList" class="sheet-list">请先加载工作表</div>
                 </div>
             </div>
         </div>
+
+        <div class="form-group" id="sheetConfigAreaWrap" style="display:none;">
+            <label>3. 为每个拆分工作表单独设置规则</label>
+            <div id="sheetConfigArea" class="config-area"></div>
+        </div>
+
         <div class="form-group">
-            <label>4. 拆分方式</label>
-            <div class="radio-group">
-                <label><input type="radio" name="split_mode" value="col_name" checked> 按列名拆分</label>
-                <label><input type="radio" name="split_mode" value="col_index"> 按列号拆分</label>
-            </div>
+            <button type="button" id="fetchSplitValuesBtn" class="fetch-btn" disabled>4. 获取拆分值</button>
         </div>
-        <div class="form-group">
-            <label><input type="checkbox" id="useMultiCheckbox"> 使用多列组合拆分</label>
-            <div id="multiColGroup" style="display:none;" class="multi-col-group">
-                <div id="multiColNameGroup" style="margin-bottom:10px;">
-                    <label>选择额外拆分列（可多选，从加载的列名中选择）</label>
-                    <select id="extraColumnsSelect" multiple size="5" style="height:100px;">
-                        <option value="">请先加载列名</option>
-                    </select>
-                </div>
-                <div id="multiColIndexGroup" style="display:none;">
-                    <label>额外拆分列号（逗号分隔，例如 2,3）</label>
-                    <input type="text" id="extraColumnsIndex" placeholder="例如: 2,3">
-                </div>
-            </div>
-        </div>
-        <div class="form-group" id="splitValueGroup">
-            <label id="splitValueLabel">选择要拆分的列名</label>
-            <div class="inline-buttons">
-                <select id="splitColumnSelect" disabled style="flex:2;">
-                    <option value="">请先加载工作表并选择一个拆分工作表</option>
-                </select>
-                <button type="button" id="loadColumnsBtn" style="flex:1; display:none;">加载列名</button>
-            </div>
-            <input type="text" id="splitColumnIndex" placeholder="请输入列号，例如 2" style="display:none;">
-        </div>
-        <div class="form-group">
-            <button type="button" id="fetchSplitValuesBtn" class="fetch-btn" disabled>获取拆分值</button>
-        </div>
+
         <div class="form-group" id="splitValuesGroup" style="display:none;">
-            <label>勾选需要拆分的值（不勾选则不生成文件）</label>
+            <label>5. 勾选需要生成文件的拆分值</label>
             <div class="value-buttons">
-                <button type="button" id="selectAllValuesBtn" style="background-color:#6c757d;">全选</button>
-                <button type="button" id="deselectAllValuesBtn" style="background-color:#6c757d;">全不选</button>
+                <button type="button" id="selectAllValuesBtn">全选</button>
+                <button type="button" id="deselectAllValuesBtn">全不选</button>
             </div>
             <div id="splitValuesList" class="checkbox-group">请先点击“获取拆分值”</div>
         </div>
+
         <div class="form-group">
-            <label>5. 输出文件名模板（使用 {value} 代表拆分的值，{base_name} 代表原文件名）</label>
+            <label>6. 输出文件名模板</label>
             <input type="text" id="filenameTemplate" value="{value}_{base_name}">
-            <div class="filename-example">示例: 如果拆分的值为“北京_2024”，模板为“{value}_项目汇总”，则生成“北京_2024_项目汇总.xlsx”</div>
+            <div class="small-note">可用变量：{value} = 拆分值，{base_name} = 原 Excel 文件名。示例：{value}_收入铺排表。</div>
         </div>
+
         <div class="form-group">
-            <button type="submit" id="submitBtn" disabled>开始拆分</button>
+            <button type="submit" id="submitBtn" class="submit-btn" disabled>开始拆分并下载 ZIP</button>
         </div>
     </form>
-    <div id="loading" class="loading">⏳ 处理中，请稍候...</div>
+
+    <div id="loading" class="loading">⏳ 正在处理，请稍候...</div>
     <div id="message"></div>
+
     <div class="info">
-        💡 使用说明：<br>
-        - 先上传文件并填写表头行号 → 点击“加载工作表” → 勾选拆分工作表和保留工作表<br>
-        - 选择拆分方式（列名或列号）→ 按列名时需点击“加载列名”<br>
-        - 若需要多列组合，勾选“使用多列组合拆分”并选择额外列<br>
-        - 点击“获取拆分值”按钮，列出所有组合值 → 使用全选/全不选筛选需要拆分的值<br>
-        - 最后点击“开始拆分”，下载 ZIP 包<br>
-        ✅ 所有单元格背景色、字体、边框、合并单元格、列宽行高都会完整保留。
+        💡 操作顺序：<br>
+        1）上传 Excel → 点击“加载工作表”；<br>
+        2）勾选多个需要拆分的 sheet；<br>
+        3）每勾选一个 sheet，下方都会出现单独配置：表头所在行号、按列名/列号拆分、拆分列；<br>
+        4）点击“获取拆分值”，系统会汇总所有 sheet 中出现过的拆分值；<br>
+        5）勾选需要生成的拆分值 → 点击“开始拆分”。<br>
+        ✅ 拆分结果：一个拆分值一个 Excel，每个 Excel 内包含你勾选的多个 sheet，且每个 sheet 都只保留该拆分值对应的数据。
     </div>
 </div>
 
 <script>
-    // DOM 元素
     const fileInput = document.getElementById('excelFile');
-    const headerRowInput = document.getElementById('headerRow');
     const loadSheetsBtn = document.getElementById('loadSheetsBtn');
     const sheetsArea = document.getElementById('sheetsArea');
     const splitSheetsDiv = document.getElementById('splitSheetsList');
     const keepSheetsDiv = document.getElementById('keepSheetsList');
-    const splitModeRadios = document.querySelectorAll('input[name="split_mode"]');
-    const splitColumnSelect = document.getElementById('splitColumnSelect');
-    const splitColumnIndex = document.getElementById('splitColumnIndex');
-    const loadColumnsBtn = document.getElementById('loadColumnsBtn');
+    const sheetConfigAreaWrap = document.getElementById('sheetConfigAreaWrap');
+    const sheetConfigArea = document.getElementById('sheetConfigArea');
     const fetchSplitValuesBtn = document.getElementById('fetchSplitValuesBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const loadingDiv = document.getElementById('loading');
-    const messageDiv = document.getElementById('message');
-    const filenameTemplateInput = document.getElementById('filenameTemplate');
-    const useMultiCheckbox = document.getElementById('useMultiCheckbox');
-    const multiColGroup = document.getElementById('multiColGroup');
-    const extraColumnsSelect = document.getElementById('extraColumnsSelect');
-    const extraColumnsIndex = document.getElementById('extraColumnsIndex');
-    const multiColNameGroup = document.getElementById('multiColNameGroup');
-    const multiColIndexGroup = document.getElementById('multiColIndexGroup');
     const splitValuesGroup = document.getElementById('splitValuesGroup');
     const splitValuesList = document.getElementById('splitValuesList');
     const selectAllValuesBtn = document.getElementById('selectAllValuesBtn');
     const deselectAllValuesBtn = document.getElementById('deselectAllValuesBtn');
+    const filenameTemplateInput = document.getElementById('filenameTemplate');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingDiv = document.getElementById('loading');
+    const messageDiv = document.getElementById('message');
 
     let currentSheets = [];
     let selectedSplitSheets = new Set();
     let selectedKeepSheets = new Set();
-    let currentColumns = [];
+    let sheetIdMap = new Map();
+    let sheetConfigs = new Map();
 
     function showMessage(msg, type = 'error') {
-        messageDiv.innerHTML = msg;
-        messageDiv.className = type === 'error' ? 'error' : 'success';
-        if (type === 'success') setTimeout(() => messageDiv.innerHTML = '', 3000);
-    }
-
-    // 更新“加载列名”按钮的可见性和启用状态
-    function updateLoadColumnsButton() {
-        const mode = document.querySelector('input[name="split_mode"]:checked').value;
-        const hasSplitSheets = selectedSplitSheets.size > 0;
-        if (mode === 'col_name') {
-            loadColumnsBtn.style.display = 'block';
-            // 只有在勾选了拆分工作表且文件已上传时才启用
-            if (hasSplitSheets && fileInput.files.length > 0) {
-                loadColumnsBtn.disabled = false;
-            } else {
-                loadColumnsBtn.disabled = true;
-            }
-        } else {
-            loadColumnsBtn.style.display = 'none';
+        messageDiv.innerHTML = msg || '';
+        messageDiv.className = type === 'success' ? 'success' : 'error';
+        if (type === 'success' && msg) {
+            setTimeout(() => {
+                if (messageDiv.innerHTML === msg) messageDiv.innerHTML = '';
+            }, 3500);
         }
     }
 
-    // 更新“获取拆分值”按钮的启用状态
-    function updateFetchButtonState() {
-        const mode = document.querySelector('input[name="split_mode"]:checked').value;
-        let splitReady = false;
-        if (mode === 'col_name') {
-            splitReady = splitColumnSelect.value !== '';
-        } else {
-            splitReady = splitColumnIndex.value.trim() !== '';
-        }
-        const hasSplitSheets = selectedSplitSheets.size > 0;
-        fetchSplitValuesBtn.disabled = !(hasSplitSheets && splitReady);
+    function resetSplitValues() {
+        splitValuesGroup.style.display = 'none';
+        splitValuesList.innerHTML = '请先点击“获取拆分值”';
+        updateSubmitButton();
     }
 
-    // 加载工作表
-    loadSheetsBtn.addEventListener('click', async () => {
-        const file = fileInput.files[0];
-        if (!file) { showMessage('请先选择文件'); return; }
-        const formData = new FormData();
-        formData.append('file', file);
-        loadSheetsBtn.disabled = true;
-        loadSheetsBtn.textContent = '加载中...';
-        try {
-            const resp = await fetch('/get_sheets_and_columns', { method: 'POST', body: formData });
-            const data = await resp.json();
-            if (resp.ok && data.sheets) {
-                currentSheets = data.sheets;
-                splitSheetsDiv.innerHTML = '';
-                keepSheetsDiv.innerHTML = '';
-                currentSheets.forEach(sheet => {
-                    // 拆分工作表
-                    const splitDiv = document.createElement('div'); splitDiv.className = 'sheet-item';
-                    const splitCb = document.createElement('input'); splitCb.type = 'checkbox'; splitCb.value = sheet;
-                    splitCb.id = `split_${sheet}`;
-                    splitCb.addEventListener('change', (e) => {
-                        if (e.target.checked) selectedSplitSheets.add(sheet);
-                        else selectedSplitSheets.delete(sheet);
-                        updateLoadColumnsButton();
-                        updateFetchButtonState();
-                        updateSubmitButton();
-                    });
-                    const splitLabel = document.createElement('label'); splitLabel.htmlFor = `split_${sheet}`; splitLabel.textContent = sheet;
-                    splitDiv.appendChild(splitCb); splitDiv.appendChild(splitLabel);
-                    splitSheetsDiv.appendChild(splitDiv);
+    function getSheetId(sheet) {
+        return sheetIdMap.get(sheet);
+    }
 
-                    // 保留工作表
-                    const keepDiv = document.createElement('div'); keepDiv.className = 'sheet-item';
-                    const keepCb = document.createElement('input'); keepCb.type = 'checkbox'; keepCb.value = sheet;
-                    keepCb.id = `keep_${sheet}`;
-                    keepCb.addEventListener('change', (e) => {
-                        if (e.target.checked) selectedKeepSheets.add(sheet);
-                        else selectedKeepSheets.delete(sheet);
-                        updateSubmitButton();
-                    });
-                    const keepLabel = document.createElement('label'); keepLabel.htmlFor = `keep_${sheet}`; keepLabel.textContent = sheet;
-                    keepDiv.appendChild(keepCb); keepDiv.appendChild(keepLabel);
-                    keepSheetsDiv.appendChild(keepDiv);
+    function initSheetConfig(sheet) {
+        if (!sheetConfigs.has(sheet)) {
+            sheetConfigs.set(sheet, {
+                sheet_name: sheet,
+                header_row: 3,
+                split_mode: 'col_name',
+                split_value: '',
+                split_col_name: '',
+                split_col_index: '',
+                columnsLoaded: false
+            });
+        }
+    }
+
+    function removeSheetConfig(sheet) {
+        sheetConfigs.delete(sheet);
+    }
+
+    function getValidSheetConfigs() {
+        const configs = [];
+        for (const sheet of selectedSplitSheets) {
+            const cfg = sheetConfigs.get(sheet);
+            if (!cfg) return null;
+
+            const headerRow = parseInt(cfg.header_row, 10);
+            if (isNaN(headerRow) || headerRow < 1) return null;
+
+            if (cfg.split_mode === 'col_name') {
+                if (!cfg.split_col_index || !cfg.split_col_name) return null;
+                configs.push({
+                    sheet_name: sheet,
+                    header_row: headerRow,
+                    split_mode: 'col_name',
+                    split_value: cfg.split_col_name,
+                    split_col_name: cfg.split_col_name,
+                    split_col_index: cfg.split_col_index
                 });
-                sheetsArea.style.display = 'block';
-                showMessage(`加载到 ${currentSheets.length} 个工作表`, 'success');
-                updateLoadColumnsButton();
-                updateFetchButtonState();
-                updateSubmitButton();
             } else {
-                showMessage('加载失败：' + (data.error || '未知错误'));
+                const colIndex = parseInt(cfg.split_value, 10);
+                if (isNaN(colIndex) || colIndex < 1) return null;
+                configs.push({
+                    sheet_name: sheet,
+                    header_row: headerRow,
+                    split_mode: 'col_index',
+                    split_value: String(colIndex),
+                    split_col_name: '',
+                    split_col_index: String(colIndex)
+                });
             }
-        } catch(err) { showMessage('网络错误：' + err.message); }
-        finally { loadSheetsBtn.disabled = false; loadSheetsBtn.textContent = '加载工作表'; }
-    });
+        }
+        return configs;
+    }
+
+    function updateButtons() {
+        const configs = getValidSheetConfigs();
+        fetchSplitValuesBtn.disabled = !(selectedSplitSheets.size > 0 && configs);
+        updateSubmitButton();
+    }
 
     function updateSubmitButton() {
-        const hasSplit = selectedSplitSheets.size > 0;
-        const mode = document.querySelector('input[name="split_mode"]:checked').value;
-        let splitValueReady = false;
-        if (mode === 'col_name') {
-            splitValueReady = splitColumnSelect.value !== '';
-        } else {
-            splitValueReady = splitColumnIndex.value.trim() !== '';
-        }
-        const hasSelectedValues = document.querySelectorAll('#splitValuesList input:checked').length > 0;
-        submitBtn.disabled = !(hasSplit && splitValueReady && hasSelectedValues);
+        const configs = getValidSheetConfigs();
+        const hasSelectedValues = document.querySelectorAll('#splitValuesList input[type="checkbox"]:checked').length > 0;
+        submitBtn.disabled = !(selectedSplitSheets.size > 0 && configs && hasSelectedValues);
     }
 
-    // 全选/全不选
-    selectAllValuesBtn.addEventListener('click', () => {
-        const cbs = splitValuesList.querySelectorAll('input[type="checkbox"]');
-        cbs.forEach(cb => cb.checked = true);
-        updateSubmitButton();
-    });
-    deselectAllValuesBtn.addEventListener('click', () => {
-        const cbs = splitValuesList.querySelectorAll('input[type="checkbox"]');
-        cbs.forEach(cb => cb.checked = false);
-        updateSubmitButton();
-    });
+    function renderSheetConfigCard(sheet) {
+        const id = getSheetId(sheet);
+        initSheetConfig(sheet);
+        const cfg = sheetConfigs.get(sheet);
 
-    // 加载列名按钮逻辑
-    loadColumnsBtn.addEventListener('click', async () => {
+        const card = document.createElement('div');
+        card.className = 'sheet-config-card';
+        card.id = `config_${id}`;
+
+        const title = document.createElement('div');
+        title.className = 'config-title';
+        const strong = document.createElement('strong');
+        strong.textContent = sheet;
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = '独立拆分规则';
+        title.appendChild(strong);
+        title.appendChild(badge);
+        card.appendChild(title);
+
+        const grid = document.createElement('div');
+        grid.className = 'config-grid';
+
+        // 表头行号
+        const headerGroup = document.createElement('div');
+        const headerLabel = document.createElement('label');
+        headerLabel.textContent = '表头所在行号';
+        const headerInput = document.createElement('input');
+        headerInput.type = 'number';
+        headerInput.min = '1';
+        headerInput.value = cfg.header_row || 3;
+        headerInput.addEventListener('input', () => {
+            cfg.header_row = headerInput.value;
+            cfg.columnsLoaded = false;
+            cfg.split_value = '';
+            cfg.split_col_name = '';
+            cfg.split_col_index = '';
+            const select = document.getElementById(`columnSelect_${id}`);
+            if (select) {
+                select.innerHTML = '<option value="">表头行变更，请重新加载列名</option>';
+                select.disabled = true;
+            }
+            resetSplitValues();
+            updateButtons();
+        });
+        headerGroup.appendChild(headerLabel);
+        headerGroup.appendChild(headerInput);
+
+        // 拆分方式
+        const modeGroup = document.createElement('div');
+        const modeLabel = document.createElement('label');
+        modeLabel.textContent = '拆分方式';
+        const radioRow = document.createElement('div');
+        radioRow.className = 'radio-row';
+
+        const nameLabel = document.createElement('label');
+        const nameRadio = document.createElement('input');
+        nameRadio.type = 'radio';
+        nameRadio.name = `splitMode_${id}`;
+        nameRadio.value = 'col_name';
+        nameRadio.checked = cfg.split_mode === 'col_name';
+        nameLabel.appendChild(nameRadio);
+        nameLabel.appendChild(document.createTextNode('按列名'));
+
+        const indexLabel = document.createElement('label');
+        const indexRadio = document.createElement('input');
+        indexRadio.type = 'radio';
+        indexRadio.name = `splitMode_${id}`;
+        indexRadio.value = 'col_index';
+        indexRadio.checked = cfg.split_mode === 'col_index';
+        indexLabel.appendChild(indexRadio);
+        indexLabel.appendChild(document.createTextNode('按列号'));
+
+        [nameRadio, indexRadio].forEach(radio => {
+            radio.addEventListener('change', () => {
+                cfg.split_mode = radio.value;
+                cfg.split_value = '';
+                cfg.split_col_name = '';
+                cfg.split_col_index = '';
+                const colNameBox = document.getElementById(`colNameBox_${id}`);
+                const colIndexBox = document.getElementById(`colIndexBox_${id}`);
+                const select = document.getElementById(`columnSelect_${id}`);
+                const indexInput = document.getElementById(`columnIndex_${id}`);
+
+                if (cfg.split_mode === 'col_name') {
+                    colNameBox.style.display = 'block';
+                    colIndexBox.style.display = 'none';
+                    if (select) select.value = '';
+                } else {
+                    colNameBox.style.display = 'none';
+                    colIndexBox.style.display = 'block';
+                    if (indexInput) indexInput.value = '';
+                }
+                resetSplitValues();
+                updateButtons();
+            });
+        });
+
+        radioRow.appendChild(nameLabel);
+        radioRow.appendChild(indexLabel);
+        modeGroup.appendChild(modeLabel);
+        modeGroup.appendChild(radioRow);
+
+        // 拆分列区域
+        const columnGroup = document.createElement('div');
+        const columnLabel = document.createElement('label');
+        columnLabel.textContent = '拆分列';
+        columnGroup.appendChild(columnLabel);
+
+        const colNameBox = document.createElement('div');
+        colNameBox.id = `colNameBox_${id}`;
+        colNameBox.style.display = cfg.split_mode === 'col_name' ? 'block' : 'none';
+        colNameBox.className = 'inline-buttons';
+
+        const columnSelect = document.createElement('select');
+        columnSelect.id = `columnSelect_${id}`;
+        columnSelect.disabled = true;
+        columnSelect.innerHTML = '<option value="">请先加载列名</option>';
+        columnSelect.addEventListener('change', () => {
+            const selected = columnSelect.selectedOptions[0];
+            cfg.split_col_index = columnSelect.value;
+            cfg.split_col_name = selected ? selected.dataset.name : '';
+            cfg.split_value = cfg.split_col_name;
+            resetSplitValues();
+            updateButtons();
+        });
+
+        const loadColumnsBtn = document.createElement('button');
+        loadColumnsBtn.type = 'button';
+        loadColumnsBtn.textContent = '加载列名';
+        loadColumnsBtn.addEventListener('click', () => loadColumnsForSheet(sheet));
+
+        colNameBox.appendChild(columnSelect);
+        colNameBox.appendChild(loadColumnsBtn);
+
+        const colIndexBox = document.createElement('div');
+        colIndexBox.id = `colIndexBox_${id}`;
+        colIndexBox.style.display = cfg.split_mode === 'col_index' ? 'block' : 'none';
+        const columnIndex = document.createElement('input');
+        columnIndex.id = `columnIndex_${id}`;
+        columnIndex.type = 'number';
+        columnIndex.min = '1';
+        columnIndex.placeholder = '请输入列号，例如 2';
+        columnIndex.addEventListener('input', () => {
+            cfg.split_value = columnIndex.value.trim();
+            cfg.split_col_index = columnIndex.value.trim();
+            cfg.split_col_name = '';
+            resetSplitValues();
+            updateButtons();
+        });
+        colIndexBox.appendChild(columnIndex);
+
+        const note = document.createElement('div');
+        note.className = 'small-note';
+        note.textContent = '例如：如果这个 sheet 要按“平台公司”拆分，且表头在第 3 行，就填表头行 3，然后加载列名并选择“平台公司”；如果要按“区域”或“项目名称”拆分，也选择对应列名即可。';
+
+        columnGroup.appendChild(colNameBox);
+        columnGroup.appendChild(colIndexBox);
+        columnGroup.appendChild(note);
+
+        grid.appendChild(headerGroup);
+        grid.appendChild(modeGroup);
+        grid.appendChild(columnGroup);
+        card.appendChild(grid);
+        sheetConfigArea.appendChild(card);
+    }
+
+    function removeSheetConfigCard(sheet) {
+        const id = getSheetId(sheet);
+        const card = document.getElementById(`config_${id}`);
+        if (card) card.remove();
+        removeSheetConfig(sheet);
+    }
+
+    function updateConfigAreaVisible() {
+        sheetConfigAreaWrap.style.display = selectedSplitSheets.size > 0 ? 'block' : 'none';
+    }
+
+    async function loadColumnsForSheet(sheet) {
         const file = fileInput.files[0];
         if (!file) { showMessage('请先选择文件'); return; }
-        if (selectedSplitSheets.size === 0) { showMessage('请至少勾选一个拆分工作表'); return; }
-        const headerRow = parseInt(headerRowInput.value);
-        if (isNaN(headerRow)) { showMessage('表头行号必须为数字'); return; }
-        const referenceSheet = Array.from(selectedSplitSheets)[0];
+
+        const cfg = sheetConfigs.get(sheet);
+        const headerRow = parseInt(cfg.header_row, 10);
+        if (isNaN(headerRow) || headerRow < 1) {
+            showMessage(`工作表【${sheet}】的表头行号必须是大于 0 的数字`);
+            return;
+        }
+
+        const id = getSheetId(sheet);
+        const btn = document.querySelector(`#config_${id} button`);
+        const select = document.getElementById(`columnSelect_${id}`);
+
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('sheet_name', referenceSheet);
-        formData.append('header_row', headerRow);
-        loadColumnsBtn.disabled = true;
-        loadColumnsBtn.textContent = '加载中...';
+        formData.append('sheet_name', sheet);
+        formData.append('header_row', String(headerRow));
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '加载中...';
+        }
+
         try {
             const resp = await fetch('/get_sheets_and_columns', { method: 'POST', body: formData });
             const data = await resp.json();
-            if (resp.ok && data.columns) {
-                currentColumns = data.columns;
-                // 填充主拆分列下拉框
-                splitColumnSelect.innerHTML = '<option value="">请选择拆分列</option>';
-                data.columns.forEach(col => {
-                    const opt = document.createElement('option');
-                    opt.value = col;
-                    opt.textContent = col;
-                    splitColumnSelect.appendChild(opt);
-                });
-                splitColumnSelect.disabled = false;
-                // 填充额外列多选框
-                extraColumnsSelect.innerHTML = '';
-                data.columns.forEach(col => {
-                    const opt = document.createElement('option');
-                    opt.value = col;
-                    opt.textContent = col;
-                    extraColumnsSelect.appendChild(opt);
-                });
-                showMessage(`从工作表“${referenceSheet}”加载列名成功`, 'success');
-                updateFetchButtonState();
-                updateSubmitButton();
-            } else {
-                showMessage('加载列名失败：' + (data.error || '未知错误'));
+            if (!resp.ok || !data.columns) {
+                throw new Error(data.error || '未知错误');
             }
-        } catch(err) { showMessage('网络错误：' + err.message); }
-        finally { loadColumnsBtn.disabled = false; loadColumnsBtn.textContent = '加载列名'; }
-    });
 
-    // 拆分方式切换
-    splitModeRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-            const mode = document.querySelector('input[name="split_mode"]:checked').value;
-            if (mode === 'col_name') {
-                splitColumnSelect.style.display = 'block';
-                splitColumnIndex.style.display = 'none';
-                // 显示加载列名按钮
-                updateLoadColumnsButton();
-                multiColNameGroup.style.display = 'block';
-                multiColIndexGroup.style.display = 'none';
-            } else {
-                splitColumnSelect.style.display = 'none';
-                splitColumnIndex.style.display = 'block';
-                loadColumnsBtn.style.display = 'none'; // 按列号模式下隐藏
-                multiColNameGroup.style.display = 'none';
-                multiColIndexGroup.style.display = 'block';
+            select.innerHTML = '<option value="">请选择拆分列</option>';
+            data.columns.forEach(col => {
+                const opt = document.createElement('option');
+                opt.value = String(col.index);
+                opt.textContent = col.label;
+                opt.dataset.name = col.name;
+                select.appendChild(opt);
+            });
+            select.disabled = false;
+            cfg.columnsLoaded = true;
+            cfg.split_value = '';
+            cfg.split_col_name = '';
+            cfg.split_col_index = '';
+            showMessage(`工作表【${sheet}】加载到 ${data.columns.length} 个列名`, 'success');
+            resetSplitValues();
+            updateButtons();
+        } catch (err) {
+            showMessage(`工作表【${sheet}】加载列名失败：${err.message}`);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '加载列名';
             }
-            splitValuesGroup.style.display = 'none';
-            updateFetchButtonState();
-            updateSubmitButton();
-        });
-    });
-
-    // 多列组合复选框
-    useMultiCheckbox.addEventListener('change', () => {
-        const show = useMultiCheckbox.checked;
-        multiColGroup.style.display = show ? 'block' : 'none';
-        if (!show) {
-            Array.from(extraColumnsSelect.options).forEach(opt => opt.selected = false);
-            extraColumnsIndex.value = '';
         }
-    });
+    }
 
-    // 监听主拆分列变化
-    splitColumnSelect.addEventListener('change', () => {
-        updateFetchButtonState();
-        updateSubmitButton();
-    });
-    splitColumnIndex.addEventListener('input', () => {
-        updateFetchButtonState();
-        updateSubmitButton();
-    });
-
-    // 获取拆分值
-    fetchSplitValuesBtn.addEventListener('click', async () => {
+    loadSheetsBtn.addEventListener('click', async () => {
         const file = fileInput.files[0];
-        if (!file) { showMessage('请先选择文件'); return; }
-        if (selectedSplitSheets.size === 0) { showMessage('请至少勾选一个拆分工作表'); return; }
-        const headerRow = parseInt(headerRowInput.value);
-        if (isNaN(headerRow)) { showMessage('表头行号必须为数字'); return; }
-        const mode = document.querySelector('input[name="split_mode"]:checked').value;
-        let splitValue = '';
-        if (mode === 'col_name') {
-            splitValue = splitColumnSelect.value;
-            if (!splitValue) { showMessage('请先加载列名并选择拆分列'); return; }
-        } else {
-            splitValue = splitColumnIndex.value.trim();
-            if (!splitValue) { showMessage('请输入列号'); return; }
-        }
-        const useMulti = useMultiCheckbox.checked;
-        let extraSplitColumns = [];
-        let extraSplitIndexes = '';
-        if (useMulti) {
-            if (mode === 'col_name') {
-                extraSplitColumns = Array.from(extraColumnsSelect.selectedOptions).map(opt => opt.value);
-            } else {
-                extraSplitIndexes = extraColumnsIndex.value.trim();
-            }
-        }
+        if (!file) { showMessage('请先选择 Excel 文件'); return; }
+
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('header_row', headerRow);
-        formData.append('split_mode', mode);
-        formData.append('split_value', splitValue);
-        selectedSplitSheets.forEach(s => formData.append('split_sheets', s));
-        formData.append('use_multi', useMulti);
-        extraSplitColumns.forEach(col => formData.append('extra_split_columns', col));
-        formData.append('extra_split_indexes', extraSplitIndexes);
+
+        loadSheetsBtn.disabled = true;
+        loadSheetsBtn.textContent = '加载中...';
+        showMessage('');
+
+        try {
+            const resp = await fetch('/get_sheets_and_columns', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (!resp.ok || !data.sheets) {
+                throw new Error(data.error || '未知错误');
+            }
+
+            currentSheets = data.sheets;
+            selectedSplitSheets.clear();
+            selectedKeepSheets.clear();
+            sheetConfigs.clear();
+            sheetIdMap.clear();
+            splitSheetsDiv.innerHTML = '';
+            keepSheetsDiv.innerHTML = '';
+            sheetConfigArea.innerHTML = '';
+            resetSplitValues();
+
+            currentSheets.forEach((sheet, index) => {
+                const id = `s${index}`;
+                sheetIdMap.set(sheet, id);
+
+                const splitItem = document.createElement('div');
+                splitItem.className = 'sheet-item';
+                const splitCb = document.createElement('input');
+                splitCb.type = 'checkbox';
+                splitCb.value = sheet;
+                splitCb.id = `split_${id}`;
+                const splitLabel = document.createElement('label');
+                splitLabel.htmlFor = `split_${id}`;
+                splitLabel.textContent = sheet;
+
+                splitCb.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedSplitSheets.add(sheet);
+                        const keepCb = document.getElementById(`keep_${id}`);
+                        if (keepCb && keepCb.checked) {
+                            keepCb.checked = false;
+                            selectedKeepSheets.delete(sheet);
+                        }
+                        renderSheetConfigCard(sheet);
+                    } else {
+                        selectedSplitSheets.delete(sheet);
+                        removeSheetConfigCard(sheet);
+                    }
+                    updateConfigAreaVisible();
+                    resetSplitValues();
+                    updateButtons();
+                });
+
+                splitItem.appendChild(splitCb);
+                splitItem.appendChild(splitLabel);
+                splitSheetsDiv.appendChild(splitItem);
+
+                const keepItem = document.createElement('div');
+                keepItem.className = 'sheet-item';
+                const keepCb = document.createElement('input');
+                keepCb.type = 'checkbox';
+                keepCb.value = sheet;
+                keepCb.id = `keep_${id}`;
+                const keepLabel = document.createElement('label');
+                keepLabel.htmlFor = `keep_${id}`;
+                keepLabel.textContent = sheet;
+
+                keepCb.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedKeepSheets.add(sheet);
+                        const splitCb = document.getElementById(`split_${id}`);
+                        if (splitCb && splitCb.checked) {
+                            splitCb.checked = false;
+                            selectedSplitSheets.delete(sheet);
+                            removeSheetConfigCard(sheet);
+                            updateConfigAreaVisible();
+                        }
+                    } else {
+                        selectedKeepSheets.delete(sheet);
+                    }
+                    resetSplitValues();
+                    updateButtons();
+                });
+
+                keepItem.appendChild(keepCb);
+                keepItem.appendChild(keepLabel);
+                keepSheetsDiv.appendChild(keepItem);
+            });
+
+            sheetsArea.style.display = 'block';
+            updateConfigAreaVisible();
+            updateButtons();
+            showMessage(`加载成功：共 ${currentSheets.length} 个工作表`, 'success');
+        } catch (err) {
+            showMessage('加载工作表失败：' + err.message);
+        } finally {
+            loadSheetsBtn.disabled = false;
+            loadSheetsBtn.textContent = '加载工作表';
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        currentSheets = [];
+        selectedSplitSheets.clear();
+        selectedKeepSheets.clear();
+        sheetConfigs.clear();
+        sheetIdMap.clear();
+        splitSheetsDiv.innerHTML = '请先加载工作表';
+        keepSheetsDiv.innerHTML = '请先加载工作表';
+        sheetConfigArea.innerHTML = '';
+        sheetsArea.style.display = 'none';
+        updateConfigAreaVisible();
+        resetSplitValues();
+        updateButtons();
+        showMessage('');
+    });
+
+    fetchSplitValuesBtn.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (!file) { showMessage('请先选择 Excel 文件'); return; }
+
+        const configs = getValidSheetConfigs();
+        if (!configs) {
+            showMessage('请把每个拆分工作表的表头行、拆分方式、拆分列都填写完整');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('sheet_configs', JSON.stringify(configs));
 
         fetchSplitValuesBtn.disabled = true;
         fetchSplitValuesBtn.textContent = '获取中...';
-        showMessage('正在获取拆分值...', 'success');
+        showMessage('正在汇总所有 sheet 的拆分值...', 'success');
+
         try {
             const resp = await fetch('/get_split_values', { method: 'POST', body: formData });
             const data = await resp.json();
-            if (resp.ok && data.values) {
-                splitValuesList.innerHTML = '';
-                if (data.values.length === 0) {
-                    splitValuesList.innerHTML = '<div style="color:red;">未找到有效数据</div>';
-                    splitValuesGroup.style.display = 'block';
-                    submitBtn.disabled = true;
-                } else {
-                    data.values.forEach(val => {
-                        const label = document.createElement('label');
-                        label.style.display = 'block';
-                        const cb = document.createElement('input');
-                        cb.type = 'checkbox';
-                        cb.value = val;
-                        cb.checked = true;
-                        cb.addEventListener('change', () => updateSubmitButton());
-                        label.appendChild(cb);
-                        label.appendChild(document.createTextNode(' ' + val));
-                        splitValuesList.appendChild(label);
-                    });
-                    splitValuesGroup.style.display = 'block';
-                    showMessage(`获取到 ${data.values.length} 个拆分值，可使用全选/全不选`, 'success');
-                    updateSubmitButton();
-                }
-            } else {
-                showMessage('获取拆分值失败：' + (data.error || '未知错误'));
-                splitValuesGroup.style.display = 'none';
+            if (!resp.ok || !data.values) {
+                throw new Error(data.error || '未知错误');
             }
-        } catch(err) { showMessage('网络错误：' + err.message); }
-        finally {
+
+            splitValuesList.innerHTML = '';
+            if (data.values.length === 0) {
+                splitValuesList.innerHTML = '<div style="color:#dc3545;">没有找到有效的拆分值，请检查表头行和拆分列是否选对。</div>';
+                splitValuesGroup.style.display = 'block';
+                updateSubmitButton();
+                return;
+            }
+
+            data.values.forEach(val => {
+                const label = document.createElement('label');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = val;
+                cb.checked = true;
+                cb.addEventListener('change', updateSubmitButton);
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + val));
+                splitValuesList.appendChild(label);
+            });
+            splitValuesGroup.style.display = 'block';
+            showMessage(`获取成功：共 ${data.values.length} 个拆分值，可按需勾选`, 'success');
+            updateSubmitButton();
+        } catch (err) {
+            splitValuesGroup.style.display = 'none';
+            showMessage('获取拆分值失败：' + err.message);
+        } finally {
             fetchSplitValuesBtn.disabled = false;
-            fetchSplitValuesBtn.textContent = '获取拆分值';
+            fetchSplitValuesBtn.textContent = '4. 获取拆分值';
+            updateButtons();
         }
     });
 
-    // 表单提交
+    selectAllValuesBtn.addEventListener('click', () => {
+        splitValuesList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+        updateSubmitButton();
+    });
+
+    deselectAllValuesBtn.addEventListener('click', () => {
+        splitValuesList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        updateSubmitButton();
+    });
+
     document.getElementById('splitForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const file = fileInput.files[0];
-        if (!file) return;
-        const mode = document.querySelector('input[name="split_mode"]:checked').value;
-        let splitValue = '';
-        if (mode === 'col_name') {
-            splitValue = splitColumnSelect.value;
-            if (!splitValue) { showMessage('请选择拆分列'); return; }
-        } else {
-            splitValue = splitColumnIndex.value.trim();
-            if (!splitValue) { showMessage('请输入列号'); return; }
-        }
-        if (selectedSplitSheets.size === 0) { showMessage('请至少勾选一个拆分工作表'); return; }
-        const selectedValues = Array.from(document.querySelectorAll('#splitValuesList input:checked')).map(cb => cb.value);
-        if (selectedValues.length === 0) { showMessage('请至少勾选一个拆分值'); return; }
 
-        const useMulti = useMultiCheckbox.checked;
-        let extraSplitColumns = [];
-        let extraSplitIndexes = '';
-        if (useMulti) {
-            if (mode === 'col_name') {
-                extraSplitColumns = Array.from(extraColumnsSelect.selectedOptions).map(opt => opt.value);
-            } else {
-                extraSplitIndexes = extraColumnsIndex.value.trim();
-            }
+        const file = fileInput.files[0];
+        if (!file) { showMessage('请先选择 Excel 文件'); return; }
+
+        const configs = getValidSheetConfigs();
+        if (!configs) {
+            showMessage('请把每个拆分工作表的表头行、拆分方式、拆分列都填写完整');
+            return;
+        }
+
+        const selectedValues = Array.from(document.querySelectorAll('#splitValuesList input[type="checkbox"]:checked')).map(cb => cb.value);
+        if (selectedValues.length === 0) {
+            showMessage('请至少勾选一个拆分值');
+            return;
         }
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('header_row', headerRowInput.value);
-        formData.append('split_mode', mode);
-        formData.append('split_value', splitValue);
-        formData.append('filename_template', filenameTemplateInput.value);
-        formData.append('use_multi', useMulti);
-        extraSplitColumns.forEach(col => formData.append('extra_split_columns', col));
-        formData.append('extra_split_indexes', extraSplitIndexes);
-        selectedSplitSheets.forEach(s => formData.append('split_sheets', s));
-        selectedKeepSheets.forEach(s => formData.append('keep_sheets', s));
-        selectedValues.forEach(v => formData.append('selected_values', v));
+        formData.append('sheet_configs', JSON.stringify(configs));
+        formData.append('filename_template', filenameTemplateInput.value.trim() || '{value}_{base_name}');
+        selectedKeepSheets.forEach(sheet => formData.append('keep_sheets', sheet));
+        selectedValues.forEach(value => formData.append('selected_values', value));
 
         loadingDiv.style.display = 'block';
         submitBtn.disabled = true;
         showMessage('');
+
         try {
             const response = await fetch('/split', { method: 'POST', body: formData });
             if (!response.ok) {
                 const text = await response.text();
                 throw new Error(text);
             }
+
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -506,12 +812,13 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showMessage('拆分成功，下载已开始', 'success');
+
+            showMessage('拆分成功，ZIP 文件已开始下载', 'success');
         } catch (err) {
             showMessage('拆分失败：' + err.message);
         } finally {
             loadingDiv.style.display = 'none';
-            submitBtn.disabled = false;
+            updateSubmitButton();
         }
     });
 </script>
